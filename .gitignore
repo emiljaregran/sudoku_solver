@@ -1,0 +1,10 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# IntelliJ files
+.idea/
+sudoku_solver.iml
+out/
