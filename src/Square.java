@@ -12,7 +12,7 @@ public class Square extends JLabel
         this.row = row;
         this.col = col;
 
-        setText("7");
+        setText(" ");
         setOpaque(true);
         setBackground(Color.white);
         setBorder(BorderFactory.createLineBorder(Color.black));
@@ -38,8 +38,8 @@ public class Square extends JLabel
         this.number = number;
     }
 
-    void setColor(Color color)
+    void setColor(Color color, int border)
     {
-        setBorder(BorderFactory.createLineBorder(color, 3));
+        setBorder(BorderFactory.createLineBorder(color, border));
     }
 }

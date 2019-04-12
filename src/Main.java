@@ -1,5 +1,3 @@
-import jdk.nashorn.internal.scripts.JO;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -8,11 +6,16 @@ import java.awt.event.*;
 
 public class Main implements ActionListener
 {
+    private final int ROW = 0;
+    private final int COL = 1;
     private final int NORMAL_MODE = 0;
     private final int EDIT_MODE = 1;
     private int currentMode = NORMAL_MODE;
 
+    private final Color colorEdit = Color.decode("#4286F4");
+
     private Square[][] squares = new Square[9][9];
+    private int[] editSquare = new int[] {0, 0};
     private JButton editButton = new JButton("Edit");
     private JButton clearButton = new JButton("Clear");
     private JButton solveButton = new JButton("Solve");
@@ -36,10 +39,7 @@ public class Main implements ActionListener
             @Override
             public void keyTyped(KeyEvent keyEvent)
             {
-                if (currentMode == EDIT_MODE)
-                {
-                    System.out.println(keyEvent.getKeyChar());
-                }
+
             }
 
             @Override
@@ -51,7 +51,10 @@ public class Main implements ActionListener
             @Override
             public void keyReleased(KeyEvent keyEvent)
             {
-
+                if (currentMode == EDIT_MODE)
+                {
+                    editBoard(keyEvent);
+                }
             }
         });
 
@@ -102,8 +105,6 @@ public class Main implements ActionListener
             }
         }
 
-        squares[7][5].setColor(Color.green);
-
         frame.add(mainPanel);
         frame.setSize(499, 496);
         frame.setResizable(false);
@@ -120,11 +121,13 @@ public class Main implements ActionListener
             if (currentMode == NORMAL_MODE)
             {
                 currentMode = EDIT_MODE;
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
                 editButton.setText("Done");
             }
             else if (currentMode == EDIT_MODE)
             {
                 currentMode = NORMAL_MODE;
+                squares[editSquare[ROW]][editSquare[COL]].setColor(Color.black, 1);
                 editButton.setText("Edit");
             }
         }
@@ -159,9 +162,42 @@ public class Main implements ActionListener
         }
     }
 
-    private void editBoard()
+    private void editBoard(KeyEvent keyEvent)
     {
+        int key = keyEvent.getKeyCode();
 
+        if (key == KeyEvent.VK_LEFT)
+        {
+            if (editSquare[COL] > 0)
+            {
+                squares[editSquare[ROW]][editSquare[COL]--].setColor(Color.black, 1);
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
+            }
+        }
+        else if (key == KeyEvent.VK_RIGHT)
+        {
+            if (editSquare[COL] < 8)
+            {
+                squares[editSquare[ROW]][editSquare[COL]++].setColor(Color.black, 1);
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
+            }
+        }
+        else if (key == KeyEvent.VK_DOWN)
+        {
+            if (editSquare[ROW] < 8)
+            {
+                squares[editSquare[ROW]++][editSquare[COL]].setColor(Color.black, 1);
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
+            }
+        }
+        else if (key == KeyEvent.VK_UP)
+        {
+            if (editSquare[ROW] > 0)
+            {
+                squares[editSquare[ROW]--][editSquare[COL]].setColor(Color.black, 1);
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
+            }
+        }
     }
 
     public static void main(String[] args)
