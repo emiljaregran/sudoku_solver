@@ -1,11 +1,21 @@
+import jdk.nashorn.internal.scripts.JO;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
+import java.awt.event.*;
 
-public class Main
+public class Main implements ActionListener
 {
+    private final int NORMAL_MODE = 0;
+    private final int EDIT_MODE = 1;
+    private int currentMode = NORMAL_MODE;
+
     private Square[][] squares = new Square[9][9];
+    private JButton editButton = new JButton("Edit");
+    private JButton clearButton = new JButton("Clear");
+    private JButton solveButton = new JButton("Solve");
 
     private Main()
     {
@@ -16,14 +26,47 @@ public class Main
         JPanel gridPanel = new JPanel(new GridLayout(3,3));
         JPanel[] bigSquares = new JPanel[9];
 
-        JLabel label = new JLabel("Speed (ms): ");
+        JLabel speedLabel = new JLabel("Speed (ms): ");
+        JLabel invisibleLabel1 = new JLabel("       ");
+        JLabel invisibleLabel2 = new JLabel("       ");
         JTextField textField = new JTextField("500");
-        textField.setColumns(4);
-        JButton button = new JButton("Solve");
 
-        buttonPanel.add(label);
+        editButton.addKeyListener(new KeyListener()
+        {
+            @Override
+            public void keyTyped(KeyEvent keyEvent)
+            {
+                if (currentMode == EDIT_MODE)
+                {
+                    System.out.println(keyEvent.getKeyChar());
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent keyEvent)
+            {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent keyEvent)
+            {
+
+            }
+        });
+
+        editButton.addActionListener(this);
+        clearButton.addActionListener(this);
+        solveButton.addActionListener(this);
+        textField.setColumns(4);
+
+        buttonPanel.add(editButton);
+        buttonPanel.add(invisibleLabel1);
+        buttonPanel.add(clearButton);
+        buttonPanel.add(invisibleLabel2);
+        buttonPanel.add(speedLabel);
         buttonPanel.add(textField);
-        buttonPanel.add(button);
+        buttonPanel.add(solveButton);
 
         mainPanel.add(gridPanel, BorderLayout.CENTER);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -54,19 +97,71 @@ public class Main
                     square = (col / 3) + 6;
                 }
 
-                squares[row][col] = new Square(row, col, "0");
+                squares[row][col] = new Square(row, col);
                 bigSquares[square].add(squares[row][col]);
             }
         }
 
         squares[7][5].setColor(Color.green);
 
-
         frame.add(mainPanel);
         frame.setSize(499, 496);
-        frame.setResizable(true);
+        frame.setResizable(false);
+        frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        if (e.getSource() == editButton)
+        {
+            if (currentMode == NORMAL_MODE)
+            {
+                currentMode = EDIT_MODE;
+                editButton.setText("Done");
+            }
+            else if (currentMode == EDIT_MODE)
+            {
+                currentMode = NORMAL_MODE;
+                editButton.setText("Edit");
+            }
+        }
+        else if (e.getSource() == clearButton)
+        {
+            if (currentMode == NORMAL_MODE)
+            {
+                clearAllSquares();
+            }
+        }
+        else if (e.getSource() == solveButton)
+        {
+            System.out.println("Solve");
+        }
+    }
+
+    private void clearAllSquares()
+    {
+        int choice = JOptionPane.showConfirmDialog(null,
+                "Are you sure that you want to clear the board?",
+                "Sudoku Solver", JOptionPane.YES_NO_OPTION);
+
+        if (choice == JOptionPane.YES_OPTION)
+        {
+            for (int row = 0; row < squares.length; row++)
+            {
+                for (int col = 0; col < squares[0].length; col++)
+                {
+                    squares[row][col].setNumber(0);
+                }
+            }
+        }
+    }
+
+    private void editBoard()
+    {
+
     }
 
     public static void main(String[] args)

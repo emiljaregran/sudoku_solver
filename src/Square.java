@@ -3,31 +3,39 @@ import java.awt.*;
 
 public class Square extends JLabel
 {
-    private int digit;
+    private int number;
     private int row;
     private int col;
 
-    Square(int row, int col, String number)
+    Square(int row, int col)
     {
         this.row = row;
         this.col = col;
 
-        setText(number);
+        setText("7");
         setOpaque(true);
         setBackground(Color.white);
         setBorder(BorderFactory.createLineBorder(Color.black));
         setHorizontalAlignment(SwingConstants.CENTER);
-        set
     }
 
-    int getDigit()
+    int getNumber()
     {
-        return digit;
+        return number;
     }
 
-    void setDigit(int digit)
+    void setNumber(int number)
     {
-        this.digit = digit;
+        if (number == 0)
+        {
+            setText(" ");
+        }
+        else
+        {
+            setText(String.valueOf(number));
+        }
+
+        this.number = number;
     }
 
     void setColor(Color color)
