@@ -12,7 +12,10 @@ public class Main implements ActionListener
     private final int EDIT_MODE = 1;
     private int currentMode = NORMAL_MODE;
 
+    private Board board = new Board();
+
     private final Color colorEdit = Color.decode("#4286F4");
+    private final Color colorError = Color.red;
 
     private Square[][] squares = new Square[9][9];
     private int[] editSquare = new int[] {0, 0};
@@ -159,14 +162,45 @@ public class Main implements ActionListener
                     squares[row][col].setNumber(0);
                 }
             }
+
+            board = new Board(getDisplayedBoard());
         }
+    }
+
+    private int[][] getDisplayedBoard()
+    {
+        int[][] currentBoard = new int[9][9];
+
+        for (int row = 0; row < currentBoard.length; row++)
+        {
+            for (int col = 0; col < currentBoard[0].length; col++)
+            {
+                currentBoard[row][col] = squares[row][col].getNumber();
+            }
+        }
+
+        return currentBoard;
     }
 
     private void editBoard(KeyEvent keyEvent)
     {
         int key = keyEvent.getKeyCode();
 
-        if (key == KeyEvent.VK_LEFT)
+        if ((key >= KeyEvent.VK_0 && key <= KeyEvent.VK_9) || key >= KeyEvent.VK_NUMPAD0 && key <= KeyEvent.VK_NUMPAD9)
+        {
+            int number = Character.getNumericValue(keyEvent.getKeyChar());
+
+            if (board.isValidPosition(editSquare[ROW], editSquare[COL], number) || number == 0)
+            {
+                squares[editSquare[ROW]][editSquare[COL]].setNumber(number);
+                board = new Board(getDisplayedBoard());
+            }
+            else
+            {
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorError, 3);
+            }
+        }
+        else if (key == KeyEvent.VK_LEFT)
         {
             if (editSquare[COL] > 0)
             {
@@ -202,7 +236,6 @@ public class Main implements ActionListener
 
     public static void main(String[] args)
     {
-        //Board board = new Board();
         //Solver solver = new Solver(board);
         new Main();
     }
