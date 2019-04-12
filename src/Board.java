@@ -56,6 +56,22 @@ public class Board
         return null;
     }
 
+    int[][] getBoard()
+    {
+        return board;
+    }
+
+    void resetBoard()
+    {
+        for (int row = 0; row < board.length; row++)
+        {
+            for (int col = 0; col < board[0].length; col++)
+            {
+                board[row][col] = 0;
+            }
+        }
+    }
+
     void setPosition(int row, int col, int number)
     {
         board[row][col] = number;

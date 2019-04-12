@@ -1,3 +1,5 @@
+import jdk.nashorn.internal.scripts.JO;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
@@ -10,6 +12,7 @@ public class Main implements ActionListener
     private final int COL = 1;
     private final int NORMAL_MODE = 0;
     private final int EDIT_MODE = 1;
+    private final int SOLVED_MODE = 2;
     private int currentMode = NORMAL_MODE;
 
     private Board board = new Board();
@@ -22,6 +25,7 @@ public class Main implements ActionListener
     private JButton editButton = new JButton("Edit");
     private JButton clearButton = new JButton("Clear");
     private JButton solveButton = new JButton("Solve");
+    private JTextField textField = new JTextField("500");
 
     private Main()
     {
@@ -35,7 +39,6 @@ public class Main implements ActionListener
         JLabel speedLabel = new JLabel("Speed (ms): ");
         JLabel invisibleLabel1 = new JLabel("       ");
         JLabel invisibleLabel2 = new JLabel("       ");
-        JTextField textField = new JTextField("500");
 
         editButton.addKeyListener(new KeyListener()
         {
@@ -126,44 +129,78 @@ public class Main implements ActionListener
                 currentMode = EDIT_MODE;
                 squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
                 editButton.setText("Done");
+                clearButton.setEnabled(false);
+                solveButton.setEnabled(false);
+                textField.setEnabled(false);
             }
             else if (currentMode == EDIT_MODE)
             {
                 currentMode = NORMAL_MODE;
                 squares[editSquare[ROW]][editSquare[COL]].setColor(Color.black, 1);
                 editButton.setText("Edit");
+                clearButton.setEnabled(true);
+                solveButton.setEnabled(true);
+                textField.setEnabled(true);
             }
         }
         else if (e.getSource() == clearButton)
         {
-            if (currentMode == NORMAL_MODE)
+            if (currentMode == NORMAL_MODE || currentMode == SOLVED_MODE)
             {
                 clearAllSquares();
             }
         }
         else if (e.getSource() == solveButton)
         {
-            System.out.println("Solve");
+            Solver solver = new Solver(board);
+            if (!solver.solve())
+            {
+                JOptionPane.showMessageDialog(null, "Failed to solve Sudoku.");
+            }
+
+            currentMode = SOLVED_MODE;
+            editButton.setEnabled(false);
+            setDisplayedBoard();
         }
     }
 
     private void clearAllSquares()
     {
-        int choice = JOptionPane.showConfirmDialog(null,
-                "Are you sure that you want to clear the board?",
-                "Sudoku Solver", JOptionPane.YES_NO_OPTION);
-
-        if (choice == JOptionPane.YES_OPTION)
+        if (currentMode == SOLVED_MODE)
         {
             for (int row = 0; row < squares.length; row++)
             {
                 for (int col = 0; col < squares[0].length; col++)
                 {
-                    squares[row][col].setNumber(0);
+                    if (!squares[row][col].getUserEntered())
+                    {
+                        squares[row][col].setNumber(0);
+                    }
                 }
             }
 
+            currentMode = NORMAL_MODE;
+            editButton.setEnabled(true);
             board = new Board(getDisplayedBoard());
+        }
+        else
+        {
+            int choice = JOptionPane.showConfirmDialog(null,
+                    "Are you sure that you want to clear the board?",
+                    "Sudoku Solver", JOptionPane.YES_NO_OPTION);
+
+            if (choice == JOptionPane.YES_OPTION)
+            {
+                for (int row = 0; row < squares.length; row++)
+                {
+                    for (int col = 0; col < squares[0].length; col++)
+                    {
+                        squares[row][col].setNumber(0, false, false);
+                    }
+                }
+
+                board = new Board(getDisplayedBoard());
+            }
         }
     }
 
@@ -182,6 +219,19 @@ public class Main implements ActionListener
         return currentBoard;
     }
 
+    private void setDisplayedBoard()
+    {
+        int[][] solvedBoard = board.getBoard();
+
+        for (int row = 0; row < squares.length; row++)
+        {
+            for (int col = 0; col < squares[0].length; col++)
+            {
+                squares[row][col].setNumber(solvedBoard[row][col]);
+            }
+        }
+    }
+
     private void editBoard(KeyEvent keyEvent)
     {
         int key = keyEvent.getKeyCode();
@@ -192,13 +242,28 @@ public class Main implements ActionListener
 
             if (board.isValidPosition(editSquare[ROW], editSquare[COL], number) || number == 0)
             {
-                squares[editSquare[ROW]][editSquare[COL]].setNumber(number);
+                squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
+                squares[editSquare[ROW]][editSquare[COL]].setNumber(number, true, true);
                 board = new Board(getDisplayedBoard());
             }
             else
             {
                 squares[editSquare[ROW]][editSquare[COL]].setColor(colorError, 3);
             }
+        }
+        else if (key == KeyEvent.VK_ESCAPE)
+        {
+            currentMode = NORMAL_MODE;
+            squares[editSquare[ROW]][editSquare[COL]].setColor(Color.black, 1);
+            editButton.setText("Edit");
+            clearButton.setEnabled(true);
+            solveButton.setEnabled(true);
+            textField.setEnabled(true);
+        }
+        else if (key == KeyEvent.VK_BACK_SPACE)
+        {
+            squares[editSquare[ROW]][editSquare[COL]].setNumber(0);
+            board = new Board(getDisplayedBoard());
         }
         else if (key == KeyEvent.VK_LEFT)
         {
@@ -236,7 +301,6 @@ public class Main implements ActionListener
 
     public static void main(String[] args)
     {
-        //Solver solver = new Solver(board);
         new Main();
     }
 }
