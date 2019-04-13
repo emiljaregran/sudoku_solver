@@ -1,10 +1,10 @@
-import jdk.nashorn.internal.scripts.JO;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.Duration;
+import java.time.Instant;
 
 public class Main implements ActionListener
 {
@@ -13,8 +13,12 @@ public class Main implements ActionListener
     private final int NORMAL_MODE = 0;
     private final int EDIT_MODE = 1;
     private final int SOLVED_MODE = 2;
+    private final int SOLVING_MODE = 3;
     private int currentMode = NORMAL_MODE;
 
+    private Instant startTime;
+    private Instant finishTime;
+    private Solver solver;
     private Board board = new Board();
 
     private final Color colorEdit = Color.decode("#4286F4");
@@ -25,7 +29,7 @@ public class Main implements ActionListener
     private JButton editButton = new JButton("Edit");
     private JButton clearButton = new JButton("Clear");
     private JButton solveButton = new JButton("Solve");
-    private JTextField textField = new JTextField("500");
+    private JTextField textField = new JTextField("1");
 
     private Main()
     {
@@ -36,23 +40,17 @@ public class Main implements ActionListener
         JPanel gridPanel = new JPanel(new GridLayout(3,3));
         JPanel[] bigSquares = new JPanel[9];
 
-        JLabel speedLabel = new JLabel("Speed (ms): ");
+        JLabel speedLabel = new JLabel("Delay (ms): ");
         JLabel invisibleLabel1 = new JLabel("       ");
         JLabel invisibleLabel2 = new JLabel("       ");
 
         editButton.addKeyListener(new KeyListener()
         {
             @Override
-            public void keyTyped(KeyEvent keyEvent)
-            {
-
-            }
+            public void keyTyped(KeyEvent keyEvent) {}
 
             @Override
-            public void keyPressed(KeyEvent keyEvent)
-            {
-
-            }
+            public void keyPressed(KeyEvent keyEvent) {}
 
             @Override
             public void keyReleased(KeyEvent keyEvent)
@@ -152,15 +150,24 @@ public class Main implements ActionListener
         }
         else if (e.getSource() == solveButton)
         {
-            Solver solver = new Solver(board);
-            if (!solver.solve())
+            if (currentMode != SOLVING_MODE && currentMode != SOLVED_MODE)
             {
-                JOptionPane.showMessageDialog(null, "Failed to solve Sudoku.");
-            }
+                int delay = Integer.valueOf(textField.getText());
+                solver = new Solver(this, board, squares, delay);
 
-            currentMode = SOLVED_MODE;
-            editButton.setEnabled(false);
-            setDisplayedBoard();
+                startTime = Instant.now();
+                solver.start();
+                editButton.setEnabled(false);
+                clearButton.setEnabled(false);
+                textField.setEnabled(false);
+                solveButton.setText("Cancel");
+                currentMode = SOLVING_MODE;
+            }
+            else
+            {
+                solver.interrupt();
+                currentMode = SOLVED_MODE;
+            }
         }
     }
 
@@ -181,6 +188,7 @@ public class Main implements ActionListener
 
             currentMode = NORMAL_MODE;
             editButton.setEnabled(true);
+            solveButton.setEnabled(true);
             board = new Board(getDisplayedBoard());
         }
         else
@@ -219,19 +227,6 @@ public class Main implements ActionListener
         return currentBoard;
     }
 
-    private void setDisplayedBoard()
-    {
-        int[][] solvedBoard = board.getBoard();
-
-        for (int row = 0; row < squares.length; row++)
-        {
-            for (int col = 0; col < squares[0].length; col++)
-            {
-                squares[row][col].setNumber(solvedBoard[row][col]);
-            }
-        }
-    }
-
     private void editBoard(KeyEvent keyEvent)
     {
         int key = keyEvent.getKeyCode();
@@ -260,9 +255,9 @@ public class Main implements ActionListener
             solveButton.setEnabled(true);
             textField.setEnabled(true);
         }
-        else if (key == KeyEvent.VK_BACK_SPACE)
+        else if (key == KeyEvent.VK_BACK_SPACE || key == KeyEvent.VK_DELETE)
         {
-            squares[editSquare[ROW]][editSquare[COL]].setNumber(0);
+            squares[editSquare[ROW]][editSquare[COL]].setNumber(0, false, false);
             board = new Board(getDisplayedBoard());
         }
         else if (key == KeyEvent.VK_LEFT)
@@ -297,6 +292,34 @@ public class Main implements ActionListener
                 squares[editSquare[ROW]][editSquare[COL]].setColor(colorEdit, 3);
             }
         }
+    }
+
+    void solvingResult(boolean result)
+    {
+        finishTime = Instant.now();
+
+        if (result)
+        {
+            String timeUnit = " milliseconds.";
+            long solveTime = Duration.between(startTime, finishTime).toMillis();
+            if (solveTime > 1000)
+            {
+                solveTime = Duration.between(startTime, finishTime).getSeconds();
+                timeUnit = " seconds.";
+            }
+            JOptionPane.showMessageDialog(null, "Sudoku solved in " + solveTime + timeUnit);
+        }
+        else
+        {
+            JOptionPane.showMessageDialog(null, "Failed to solve Sudoku.");
+        }
+
+        editButton.setEnabled(true);
+        clearButton.setEnabled(true);
+        textField.setEnabled(true);
+        solveButton.setEnabled(false);
+        solveButton.setText("Solve");
+        currentMode = SOLVED_MODE;
     }
 
     public static void main(String[] args)
