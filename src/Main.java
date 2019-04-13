@@ -307,7 +307,7 @@ public class Main implements ActionListener
                 solveTime = Duration.between(startTime, finishTime).getSeconds();
                 timeUnit = " seconds.";
             }
-            JOptionPane.showMessageDialog(null, "Sudoku solved in " + solveTime + timeUnit);
+            JOptionPane.showMessageDialog(null, "Solver ran for " + solveTime + timeUnit);
         }
         else
         {

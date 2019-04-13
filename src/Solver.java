@@ -1,5 +1,3 @@
-import javax.swing.*;
-
 public class Solver extends Thread
 {
     private final Main main;
@@ -30,19 +28,19 @@ public class Solver extends Thread
         int[] emptyPosition = board.getFirstEmptyPosition();
         for (int number = 1; number < 10; number++)
         {
-            // Visually showing progress in real time on the board
-            squares[emptyPosition[ROW]][emptyPosition[COL]].setNumber(number);
-            try
-            {
-                Thread.sleep(delay);
-            }
-            catch (InterruptedException e)
-            {
-                stopSolve = true;
-            }
-
             if (board.isValidPosition(emptyPosition[ROW], emptyPosition[COL], number))
             {
+                // Visually showing progress in real time on the board
+                squares[emptyPosition[ROW]][emptyPosition[COL]].setNumber(number);
+                try
+                {
+                    Thread.sleep(delay);
+                }
+                catch (InterruptedException e)
+                {
+                    stopSolve = true;
+                }
+
                 board.setPosition(emptyPosition[ROW], emptyPosition[COL], number);
                 if (solve(delay))
                 {
